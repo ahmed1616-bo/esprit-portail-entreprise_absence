@@ -21,13 +21,26 @@ pipeline{
 
 
     }
+
+    stage("build Artifact")
+     {
+        when{
+        branch 'develop'
+        }
+        steps{
+         sh "mvn clean package -DskipTests=true"
+         archive 'target/*.jar'
+        }
+
+
+    }
           stage("SonarQube Scan") {
                when{ branch 'develop'}
             steps {
                 withSonarQubeEnv('sonar') {  
                     sh '''
                     
-                     mvn clean verify sonar:sonar \
+                     mvn clean compile test-compile sonar:sonar \
                             -Dsonar.projectKey=esprit-portail-entreprise_absence \
                             -Dsonar.projectName="esprit-portail-entreprise_absence - ${BRANCH_NAME}" \
                             -Dsonar.login=${SONAR_TOKEN}
