@@ -4,6 +4,10 @@ pipeline{
        
         SONAR_TOKEN = credentials('sonar')
     }
+    tools{
+        maven 'mvn'
+    }
+    
   stages{
     stage("Checkout code develop")
      {
