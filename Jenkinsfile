@@ -24,7 +24,7 @@ pipeline{
                     sh '''
                     
                     mvn sonar:sonar \
-                        -Dsonar.projectKey=absence} \
+                        -Dsonar.projectKey=absence \
                         -Dsonar.projectName="absence - ${BRANCH_NAME}" \
                         -Dsonar.login=${SONAR_TOKEN}
                     
