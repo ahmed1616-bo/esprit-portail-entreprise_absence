@@ -1,5 +1,9 @@
 pipeline{
   agent any
+   environment {
+       
+        SONAR_TOKEN = credentials('sonar')
+    }
   stages{
     stage("Checkout code develop")
      {
@@ -13,6 +17,24 @@ pipeline{
 
 
     }
+          stage("SonarQube Scan") {
+               when{ branch 'develop'}
+            steps {
+                withSonarQubeEnv('sonar') {  
+                    sh '''
+                    
+                    mvn sonar:sonar \
+                        -Dsonar.projectKey=absence} \
+                        -Dsonar.projectName="absence - ${BRANCH_NAME}" \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    
+                  
+                    '''
+                }
+            }
+        }
+
+
     stage("Checkout code QA")
      {
         when{
