@@ -46,7 +46,7 @@ pipeline{
         }
 
      }
-     stage("SonarQube Scan") {
+     stage("SonarQube Scan for qa") {
                when{ branch 'qa'}
             steps {
                 withSonarQubeEnv('sonar') {  
@@ -74,7 +74,7 @@ pipeline{
 
 
     }
-    stage("SonarQube Scan") {
+    stage("SonarQube Scan for prod") {
                when{ branch 'master'}
             steps {
                 withSonarQubeEnv('sonar') {  
