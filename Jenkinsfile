@@ -27,7 +27,7 @@ pipeline{
                 withSonarQubeEnv('sonar') {  
                     sh '''
                     
-                     mvn clean compile test-compile sonar:sonar \
+                     mvn clean verify sonar:sonar \
                             -Dsonar.projectKey=esprit-portail-entreprise_absence \
                             -Dsonar.projectName="esprit-portail-entreprise_absence - ${BRANCH_NAME}" \
                             -Dsonar.login=${SONAR_TOKEN}
