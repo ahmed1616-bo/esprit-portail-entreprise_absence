@@ -46,6 +46,22 @@ pipeline{
         }
 
      }
+     stage("SonarQube Scan") {
+               when{ branch 'qa'}
+            steps {
+                withSonarQubeEnv('sonar') {  
+                    sh '''
+                    
+                    mvn sonar:sonar \
+                        -Dsonar.projectKey=absence} \
+                        -Dsonar.projectName="absence - ${BRANCH_NAME}" \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    
+                  
+                    '''
+                }
+            }
+        }
     stage("Checkout code prod")
      {
         when{
@@ -58,6 +74,23 @@ pipeline{
 
 
     }
+    stage("SonarQube Scan") {
+               when{ branch 'master'}
+            steps {
+                withSonarQubeEnv('sonar') {  
+                    sh '''
+                    
+                    mvn sonar:sonar \
+                        -Dsonar.projectKey=absence} \
+                        -Dsonar.projectName="absence - ${BRANCH_NAME}" \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    
+                  
+                    '''
+                }
+            }
+        }
+
   }
 
 }
