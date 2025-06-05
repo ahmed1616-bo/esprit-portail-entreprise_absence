@@ -3,6 +3,7 @@ pipeline{
    environment {
        
         SONAR_TOKEN = credentials('sonar')
+        DEPENDENCY_CHECK_HOME = '/tmp/dependency-check'
     }
     tools{
         maven 'mvn'
@@ -54,13 +55,11 @@ pipeline{
   when {
     branch 'develop'
   }
-  environment {
-    DEPENDENCY_CHECK_HOME = tool name: 'OWASP', type: 'org.jenkinsci.plugins.DependencyCheckTool'
-  }
+  
   steps {
     withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
       sh '''
-        ${DEPENDENCY_CHECK_HOME}/dependency-check.sh \
+        ${DEPENDENCY_CHECK_HOME}/bin/dependency-check.sh \
         --nvdApiKey $NVD_API_KEY \
         --project esprit-portail-entreprise_absence \
         --scan . \
