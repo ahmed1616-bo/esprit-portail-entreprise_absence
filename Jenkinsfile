@@ -51,16 +51,27 @@ pipeline{
             }
         }
     stage('OWASP Dependency-Check Vulnerabilities') {
-      steps {
-        dependencyCheck additionalArguments: ''' 
-                    -o './'
-                    -s './'
-                    -f 'ALL' 
-                    --prettyPrint''', odcInstallation: 'OWASP'
-        
-        dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-      }
+  when {
+    branch 'develop'
+  }
+  environment {
+    DEPENDENCY_CHECK_HOME = tool name: 'OWASP', type: 'org.jenkinsci.plugins.DependencyCheckTool'
+  }
+  steps {
+    withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+      sh '''
+        ${DEPENDENCY_CHECK_HOME}/dependency-check.sh \
+        --nvdApiKey $NVD_API_KEY \
+        --project esprit-portail-entreprise_absence \
+        --scan . \
+        --out ./ \
+        --format ALL \
+        --prettyPrint
+      '''
     }
+    dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+  }
+}
 
     stage("Checkout code QA")
      {
