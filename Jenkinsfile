@@ -73,19 +73,21 @@ pipeline{
 }
 
 stage('Security Scan - SpotBugs') {
-            steps {
-                
-                sh 'mvn spotbugs:spotbugs'
-            }
-            post {
-                always {
-                    // Publier les résultats avec le Warnings Plugin
-                    publishIssues enabledForFailure: true, tools: [
-                        spotBugs(pattern: '**/target/spotbugsXml.xml')
-                    ]
-                }
-            }
+  when {
+    branch 'develop'
+  }
+    steps {
+        sh 'mvn spotbugs:spotbugs'
+    }
+    post {
+        always {
+            recordIssues(
+                enabledForFailure: true,
+                tools: [spotBugs(pattern: '**/target/spotbugsXml.xml')]
+            )
         }
+    }
+}
 
     stage("Checkout code QA")
      {
