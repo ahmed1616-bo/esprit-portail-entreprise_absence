@@ -80,7 +80,21 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.8.2.0</version>
+                <configuration>
+                  <effort>Max</effort>
+                  <threshold>Low</threshold>
+                  <xmlOutput>true</xmlOutput>
+                  <spotbugsXmlOutput>true</spotbugsXmlOutput>
+                  <failOnError>false</failOnError>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                </configuration>
+            </plugin>
         </plugins>
+            
     </build>
 
 </project>
