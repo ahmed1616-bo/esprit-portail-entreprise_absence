@@ -37,15 +37,28 @@ pipeline{
 
     }
     stage('Snyk Security Scan') {
-     when{ branch 'develop'}
+
+    environment {
+        SNYK_TOKEN = credentials('snyk-auth-token')
+    }
+    when{
+        branch 'develop'
+        }
     steps {
-        snykSecurity(
-            snykInstallation: 'Snyk-Latest',
-            snykTokenId: 'snyk-auth-token',
-            severity: 'medium',
-            failOnIssues: false,
-            additionalArguments: '--all-projects --file=pom.xml'
-        )
+        sh '''
+            # Download and install Snyk CLI
+            curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
+            chmod +x snyk
+            
+            # Authenticate with Snyk
+            ./snyk auth $SNYK_TOKEN
+            
+            # Test for vulnerabilities
+            ./snyk test --all-projects --org=ahmed1616-bo --severity-threshold=medium || true
+            
+            # Monitor project (sends results to Snyk dashboard)
+            ./snyk monitor --all-projects --org=ahmed1616-bo
+        '''
     }
 }
 
