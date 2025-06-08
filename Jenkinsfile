@@ -8,21 +8,50 @@ pipeline{
     }
     tools{
         maven 'mvn'
+        dockerTool 'docker'
     }
     
   stages{
-    stage("Checkout code develop")
-     {
-        when{
+    stage("Checkout code develop") {
+    when {
         branch 'develop'
-        }
-        steps{
-             checkout scm
-
-        }
-
-
     }
+    steps {
+        checkout scm
+        
+        script {
+            // Get Git commit hash
+            env.GIT_COMMIT = sh(
+                returnStdout: true, 
+                script: 'git rev-parse HEAD'
+            ).trim()
+            
+            // Get branch name (with fallback)
+            env.BRANCH_NAME = env.BRANCH_NAME ?: sh(
+                returnStdout: true,
+                script: 'git rev-parse --abbrev-ref HEAD'
+            ).trim()
+            
+            // Get repository URL and extract repo name
+            def gitUrl = sh(
+                returnStdout: true,
+                script: 'git config --get remote.origin.url'
+            ).trim()
+            
+            // Extract repository name from URL
+            def repoName = gitUrl.replaceFirst('.+(/|:)', '')
+                               .replaceFirst('.git$', '')
+            
+            // Set environment variables
+            env.REPO_NAME = repoName
+            
+            // Debug output
+            echo "Repository: ${repoName}"
+            echo "Branch: ${env.BRANCH_NAME}"
+            echo "Commit: ${env.GIT_COMMIT}"
+        }
+    }
+}
 
     stage("build Artifact")
      {
