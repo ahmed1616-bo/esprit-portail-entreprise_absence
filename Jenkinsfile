@@ -1,5 +1,36 @@
 pipeline{
-  agent any
+   agent {
+    kubernetes {
+      label 'kaniko-agent'
+      defaultContainer 'kaniko'
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: kaniko
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:latest
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker
+    - name: kaniko-cache
+      mountPath: /cache
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: harbor-secret
+  - name: kaniko-cache
+    persistentVolumeClaim:
+      claimName: kaniko-cache
+"""
+    }
+  }
    environment {
        
         SONAR_TOKEN = credentials('sonar')
@@ -149,29 +180,23 @@ stage('Security Scan - SpotBugs') {
     }
 }
 
-  stage('Docker Build') {
-            when {
-                 
-                    branch 'develop'
-                      
-            }
-            steps {
-                script {
-
-                     def imageTag = "${env.REPO_NAME}:${env.GIT_COMMIT.substring(0, 7)}"
-                  
-                    sh """
-                        docker build -t ${imageTag} .
-                        echo "Successfully built image: ${imageTag}"
-                    """
-                    
-                    
-                    
-                    
-                    
-                }
-            }
+    stage('Build and Push with Kaniko') {
+      steps {
+        container('kaniko') {
+          script {
+            def tag = "${DOCKER_REGISTRY}/${REPO_NAME}:${GIT_COMMIT.take(7)}"
+            sh """
+              /kaniko/executor \
+                --dockerfile=Dockerfile \
+                --context=`pwd` \
+                --destination=${tag} \
+                --cache=true \
+                --cache-dir=/cache
+            """
+          }
         }
+      }
+    }
 
     stage("Checkout code QA")
      {
