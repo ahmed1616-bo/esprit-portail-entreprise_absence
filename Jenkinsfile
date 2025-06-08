@@ -36,33 +36,26 @@ pipeline{
 
 
     }
-      stage('Security Scan - Snyk') {
-      when { branch 'develop' }
-      environment {
-        SNYK_TOKEN = credentials('snyk-auth-token')  // Redéclaration spécifique au stage
-      }
-      steps {
-        script {
-          // Authentification explicite
-          sh 'snyk auth ${SNYK_TOKEN}'
-          
-          // Scan des dépendances (Maven)
-          sh 'snyk test --file=pom.xml --severity-threshold=high'
-          
-          // Scan SAST du code
-          sh 'snyk code test --severity-threshold=high'
-          
-          // Envoi des résultats
-          sh 'snyk monitor --all-projects'
-        }
-      }
-      post {
-        failure {
-          echo "❌ Snyk a détecté des vulnérabilités critiques !"
-          error "Build interrompu pour cause de vulnérabilités."
-        }
-      }
-    }
+      stage('Snyk Scan') {
+  steps {
+    // Authentification implicite via le plugin (pas besoin de 'snyk auth' manuel)
+    snykSecurity(
+      snykTokenId: 'snyk-auth-token',  // Référence à vos credentials
+      failOnIssues: true,               // Bloquer le pipeline si vulnérabilités
+      severity: 'high',                 // Seuil : high/critical
+      targetFile: 'pom.xml',            // Fichier à analyser (pour Maven)
+      additionalArguments: '--all-projects --sarif-file-output=snyk.sarif'  // Options CLI supplémentaires
+    )
+
+    // Optionnel : Publier le rapport SARIF dans Jenkins
+    recordIssues(
+      tools: [snyk(pattern: 'snyk.sarif')],
+      qualityGates: [[threshold: 1, type: 'SEVERITY_HIGH', unstable: false]]
+    )
+  }
+}
+
+
 
 
           stage("SonarQube Scan") {
