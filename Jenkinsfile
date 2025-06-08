@@ -157,7 +157,7 @@ stage('Security Scan - SpotBugs') {
             }
             steps {
                 script {
-                    echo "🐳 Building Docker image: 
+                  
                     dockerImage = docker.build("${repoName}:${env.GIT_COMMIT}")
                     
                     
