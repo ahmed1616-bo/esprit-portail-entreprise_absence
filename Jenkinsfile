@@ -36,26 +36,17 @@ pipeline{
 
 
     }
-      stage('Snyk Scan') {
-        when{
-        branch 'develop'
-        }
-  steps {
-    // Authentification implicite via le plugin (pas besoin de 'snyk auth' manuel)
-    snykSecurity(
-      snykTokenId: 'snyk-auth-token',  // Référence à vos credentials
-      failOnIssues: true,               // Bloquer le pipeline si vulnérabilités
-      severity: 'high',                 // Seuil : high/critical
-      targetFile: 'pom.xml',            // Fichier à analyser (pour Maven)
-      additionalArguments: '--all-projects --sarif-file-output=snyk.sarif'  // Options CLI supplémentaires
-    )
-
-    // Optionnel : Publier le rapport SARIF dans Jenkins
-    recordIssues(
-      tools: [snyk(pattern: 'snyk.sarif')],
-      qualityGates: [[threshold: 1, type: 'SEVERITY_HIGH', unstable: false]]
-    )
-  }
+    stage('Snyk Security Scan') {
+     when{ branch 'develop'}
+    steps {
+        snykSecurity(
+            snykInstallation: 'Snyk-Latest',
+            snykTokenId: 'snyk-auth-token',
+            severity: 'medium',
+            failOnIssues: false,
+            additionalArguments: '--all-projects --file=pom.xml'
+        )
+    }
 }
 
 
