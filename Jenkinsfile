@@ -3,6 +3,7 @@ pipeline{
    environment {
        
         SONAR_TOKEN = credentials('sonar')
+        SNYK_TOKEN = credentials('snyk-auth-token') 
         DEPENDENCY_CHECK_HOME = '/tmp/dependency-check'
     }
     tools{
@@ -35,6 +36,35 @@ pipeline{
 
 
     }
+      stage('Security Scan - Snyk') {
+      when { branch 'develop' }
+      environment {
+        SNYK_TOKEN = credentials('snyk-auth-token')  // Redéclaration spécifique au stage
+      }
+      steps {
+        script {
+          // Authentification explicite
+          sh 'snyk auth ${SNYK_TOKEN}'
+          
+          // Scan des dépendances (Maven)
+          sh 'snyk test --file=pom.xml --severity-threshold=high'
+          
+          // Scan SAST du code
+          sh 'snyk code test --severity-threshold=high'
+          
+          // Envoi des résultats
+          sh 'snyk monitor --all-projects'
+        }
+      }
+      post {
+        failure {
+          echo "❌ Snyk a détecté des vulnérabilités critiques !"
+          error "Build interrompu pour cause de vulnérabilités."
+        }
+      }
+    }
+
+
           stage("SonarQube Scan") {
                when{ branch 'develop'}
             steps {
