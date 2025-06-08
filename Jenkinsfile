@@ -157,16 +157,18 @@ stage('Security Scan - SpotBugs') {
             }
             steps {
                 script {
+
+                     def imageTag = "${env.REPO_NAME}:${env.GIT_COMMIT.substring(0, 7)}"
                   
-                    dockerImage = docker.build("${repoName}:${env.GIT_COMMIT}")
+                    sh """
+                        docker build -t ${imageTag} .
+                        echo "Successfully built image: ${imageTag}"
+                    """
                     
                     
                     
                     
-                    echo "✅ Docker image built successfully"
-                    echo "📋 Available tags:"
-                    echo "   - ${repoName}:${env.GIT_COMMIT}"
-                    echo "   - ${env.IMAGE_NAME}:${env.BRANCH_NAME}-latest"
+                    
                 }
             }
         }
