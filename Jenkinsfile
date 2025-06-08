@@ -37,6 +37,9 @@ pipeline{
 
     }
       stage('Snyk Scan') {
+        when{
+        branch 'develop'
+        }
   steps {
     // Authentification implicite via le plugin (pas besoin de 'snyk auth' manuel)
     snykSecurity(
