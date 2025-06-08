@@ -5,6 +5,7 @@ pipeline{
         SONAR_TOKEN = credentials('sonar')
         SNYK_TOKEN = credentials('snyk-auth-token') 
         DEPENDENCY_CHECK_HOME = '/tmp/dependency-check'
+         DOCKER_REGISTRY ='harbor.pixelslabs.com'
     }
     tools{
         maven 'mvn'
@@ -42,10 +43,10 @@ pipeline{
             def repoName = gitUrl.replaceFirst('.+(/|:)', '')
                                .replaceFirst('.git$', '')
             
-            // Set environment variables
+           
             env.REPO_NAME = repoName
             
-            // Debug output
+            
             echo "Repository: ${repoName}"
             echo "Branch: ${env.BRANCH_NAME}"
             echo "Commit: ${env.GIT_COMMIT}"
@@ -147,6 +148,28 @@ stage('Security Scan - SpotBugs') {
         }
     }
 }
+
+  stage('Docker Build') {
+            when {
+                 
+                    branch 'develop'
+                      
+            }
+            steps {
+                script {
+                    echo "🐳 Building Docker image: 
+                    dockerImage = docker.build("${repoName}:${env.GIT_COMMIT}")
+                    
+                    
+                    
+                    
+                    echo "✅ Docker image built successfully"
+                    echo "📋 Available tags:"
+                    echo "   - ${repoName}:${env.GIT_COMMIT}"
+                    echo "   - ${env.IMAGE_NAME}:${env.BRANCH_NAME}-latest"
+                }
+            }
+        }
 
     stage("Checkout code QA")
      {
