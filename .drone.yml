@@ -10,6 +10,10 @@ steps:
     - export GIT_COMMIT=$(git rev-parse HEAD)
     - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
     - export REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
+    - echo "$GIT_COMMIT"
+    - echo "Branch=$BRANCH_NAME"
+    - echo "Repository=$REPO_NAME"
+    - exit 0 
   - name: maven-build
     image: maven:3.8-openjdk-17
     commands:
@@ -17,13 +21,25 @@ steps:
       - echo "Maven build completed"
       - exit 0 
   - name: snyk scan
-    image: node:20
+    image: maven:3.8-openjdk-17
     environment:
      SNYK_TOKEN:
       from_secret: snyk-auth-token
     commands:
-    - curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
-    - chmod +x snyk
-    - ./snyk auth $SNYK_TOKEN
-    - ./snyk test --all-projects --org=ahmed1616-bo --severity-threshold=medium || true
-    - ./snyk monitor --all-projects --org=ahmed1616-bo
+     
+      - curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
+      - chmod +x snyk
+      - ./snyk auth $SNYK_TOKEN
+      
+      - ./snyk test --severity-threshold=medium --org=ahmed1616-bo || true
+      - ./snyk monitor --org=ahmed1616-bo
+  - name: sonar-scan
+    image: maven:3.8-openjdk-17
+    environment:
+      SONAR_TOKEN:
+        from_secret: sonar-token
+    commands:
+      - mvn clean compile sonar:sonar 
+        -Dsonar.projectKey=your-project-key 
+        -Dsonar.host.url=http://192.168.3.100:30033
+        -Dsonar.login=$SONAR_TOKEN
