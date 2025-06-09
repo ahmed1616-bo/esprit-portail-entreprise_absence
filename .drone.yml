@@ -61,7 +61,7 @@ steps:
     commands:
       - mkdir -p /report
       - export NVD_API_KEY=$NVD_API_KEY
-      - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report 
+      - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report --nvdApiKey $NVD_API_KEY 
       - cp /report/dependency-check-report.* .
   - name: install-mc
     image: alpine:latest
