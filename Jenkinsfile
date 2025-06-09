@@ -76,7 +76,7 @@ pipeline{
        // }
    // steps {
      //   sh '''
-            # Download and install Snyk CLI
+           
        //     curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
          //   chmod +x snyk
             
