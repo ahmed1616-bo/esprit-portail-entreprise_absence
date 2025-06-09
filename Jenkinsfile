@@ -13,6 +13,12 @@ pipeline{
     }
     
   stages{
+       stage('Clean Workspace') { 
+            steps {
+                cleanWs()  
+            }
+        }
+
     stage("Checkout code develop") {
     when {
         branch 'develop'
