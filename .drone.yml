@@ -75,12 +75,15 @@ steps:
      NVD_API_KEY:
       from_secret: NVD_API_KEY
     commands:
-      - mkdir -p /report
+      - mkdir -p /reports
       - export NVD_API_KEY=$NVD_API_KEY
       - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report --nvdApiKey $NVD_API_KEY 
-      - cp /report/dependency-check-report.* .
+      - cp /reports/dependency-check-report.* .
   - name: install-mc
     image: alpine:latest
+    volumes:
+      - name: reports
+        path: /reports
     environment:
       MINIO_ACCESS_KEY: minioadmin  
       MINIO_SECRET_KEY: minioadmin123  
