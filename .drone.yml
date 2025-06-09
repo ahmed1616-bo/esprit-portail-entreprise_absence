@@ -3,13 +3,7 @@ type: kubernetes
 name: default
 steps:
 
-  - name: extract git info
-    image: alpine
-    commands:
-    - apk add git
-    - export GIT_COMMIT=$(git rev-parse HEAD)
-    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-    - export REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
+ 
   - name: maven-build
     image: maven:3.8-openjdk-17
     commands:
