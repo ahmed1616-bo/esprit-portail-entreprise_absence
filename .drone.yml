@@ -49,6 +49,7 @@ steps:
         path: /reports
     commands:
       - echo "=== TRIVY FILESYSTEM SCAN ==="
+      - mkdir -p /reports/security
       - trivy fs --security-checks vuln,secret,config --severity LOW,MEDIUM,HIGH,CRITICAL . --format json --output /reports/security/trivy-fs-scan.json
       - trivy fs --security-checks vuln,secret,config --severity HIGH,CRITICAL . --format table --output /reports/security/trivy-fs-scan.txt
   - name: dependency-check
