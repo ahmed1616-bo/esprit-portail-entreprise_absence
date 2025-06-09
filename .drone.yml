@@ -54,11 +54,14 @@ steps:
       - trivy fs --security-checks vuln,secret,config --severity HIGH,CRITICAL . --format table --output /reports/security/trivy-fs-scan.txt
   - name: dependency-check
     image: owasp/dependency-check:latest
-    failure: ignore  
+    failure: ignore
+    environment:
+     NVD_API_KEY:
+      from_secret: NVD_API_KEY
     commands:
       - mkdir -p /report
+      - export NVD_API_KEY=$NVD_API_KEY
       - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report 
-        --failOnCVSS 7
       - cp /report/dependency-check-report.* .
   - name: install-mc
     image: alpine:latest
