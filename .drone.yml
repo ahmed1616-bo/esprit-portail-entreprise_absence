@@ -91,7 +91,7 @@ steps:
       - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
       - mc mb myminio/scannerfiles || echo "Bucket already exists"
       
-      - mc cp mc cp /reports/dependency-check/dependency-check-report.html myminio/scannerfiles/dependency-check/dependency-check-report.html
+      - mc cp /reports/dependency-check/dependency-check-report.html myminio/scannerfiles/dependency-check/dependency-check-report.html
       - mc cp /reports/dependency-check/dependency-check-report.json myminio/scannerfiles/dependency-check/dependency-check-report.json
   - name: build-and-push
     image: plugins/docker
