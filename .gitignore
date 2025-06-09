@@ -47,11 +47,6 @@ Thumbs.db
 !**/application.yml
 !**/application.properties
 
-# Maven
-**/mvnw
-**/mvnw.cmd
-**/.mvn/
-**/maven-wrapper.jar
 
 # Gradle
 .gradle/

@@ -1,0 +1,107 @@
+kind: pipeline
+type: kubernetes
+name: default
+steps:
+
+  - name: extract git info
+    image: alpine
+    commands:
+    - apk add git
+    - export GIT_COMMIT=$(git rev-parse HEAD)
+    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+    - export REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
+    - echo "$GIT_COMMIT"
+    - echo "Branch=$BRANCH_NAME"
+    - echo "Repository=$REPO_NAME"
+    - exit 0 
+  - name: maven-build
+    image: maven:3.8-openjdk-17
+    volumes:
+      - name: reports
+        path: /reports
+    commands:
+      - mvn clean package -DskipTests
+      - echo "Maven build completed"
+      - mkdir -p /reports/maven
+      - cp -r target /reports/maven/
+      - exit 0 
+  - name: snyk scan
+    image: maven:3.8-openjdk-17
+    volumes:
+      - name: reports
+        path: /reports
+    environment:
+     SNYK_TOKEN:
+      from_secret: snyk-auth-token
+    commands:
+    - curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
+    - chmod +x snyk
+    - export SNYK_TOKEN=$SNYK_TOKEN
+    - ./snyk test --all-projects --severity-threshold=medium --org=ahmed1616-bo || true
+    - ./snyk monitor --all-projects --org=ahmed1616-bo || true
+    - mkdir -p /reports/snyk
+    - cp -r *.json *.xml /reports/snyk/ || true
+  - name: sonar-analysis
+    image: sonarsource/sonar-scanner-cli:4.8
+    environment:
+      SONAR_HOST_URL: "http://192.168.3.100:30033"
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+    commands:
+      - sonar-scanner -X -Dsonar.projectKey=absence -Dsonar.projectName=absence -Dsonar.projectVersion=1.0 -Dsonar.sources=src/main/java -Dsonar.host.url=http://192.168.3.100:30033 -Dsonar.login=admin -Dsonar.password=A@med22754008 -Dsonar.java.binaries=target/classes -Dsonar.java.source=17 -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="**/target/**,**/Dockerfile" -Dsonar.dependencyCheck.htmlReportPath=dependency-check-report.html -Dsonar.dependencyCheck.jsonReportPath=dependency-check-report.json
+  
+  - name: trivy-filesystem-scan
+    image: aquasec/trivy:latest
+
+    volumes:
+      - name: reports
+        path: /reports
+    commands:
+      - echo "=== TRIVY FILESYSTEM SCAN ==="
+      - mkdir -p /reports/security
+      - trivy fs --security-checks vuln,secret,config --severity LOW,MEDIUM,HIGH,CRITICAL . --format json --output /reports/security/trivy-fs-scan.json
+      - trivy fs --security-checks vuln,secret,config --severity HIGH,CRITICAL . --format table --output /reports/security/trivy-fs-scan.txt
+  - name: dependency-check
+    image: owasp/dependency-check:12.1.0
+    failure: ignore
+    volumes:
+      - name: reports
+        path: /reports
+    environment:
+     NVD_API_KEY:
+      from_secret: NVD_API_KEY
+    commands:
+      - mkdir -p /report
+      - export NVD_API_KEY=$NVD_API_KEY
+      - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report --nvdApiKey $NVD_API_KEY 
+      - cp /report/dependency-check-report.* .
+  - name: install-mc
+    image: alpine:latest
+    environment:
+      MINIO_ACCESS_KEY: minioadmin  
+      MINIO_SECRET_KEY: minioadmin123  
+    commands:
+      - wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /tmp/mc
+      - chmod +x /tmp/mc
+      - mv /tmp/mc /usr/local/bin/mc
+      - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      - mc mb myminio/scannerfiles || echo "Bucket already exists"
+      - mc cp  /reports/security/trivy-fs-scan.txt myminio/scannerfiles/security/trivy-fs-scan.txt
+  - name: build-and-push
+    image: plugins/docker
+    environment:
+      DOCKER_BUILDKIT: 1
+    settings:
+      username:
+        from_secret: harbor_username
+      password:
+        from_secret: harbor_password
+      dockerfile: Dockerfile
+      repo: harbor.pixelslabs.com/projetesprit/absence
+      registry: harbor.pixelslabs.com
+      tags:
+        - ${DRONE_COMMIT_SHA}
+
+volumes:
+  - name: reports
+    temp: {}
