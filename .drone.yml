@@ -14,3 +14,14 @@ steps:
     image: maven:3.8-openjdk-17
     commands:
       - mvn clean package -DskipTests
+  - name: snyk scan
+    image: node:20
+    environment:
+     SNYK_TOKEN:
+      from_secret: snyk-auth-token
+    commands:
+    - curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
+    - chmod +x snyk
+    - ./snyk auth $SNYK_TOKEN
+    - ./snyk test --all-projects --org=ahmed1616-bo --severity-threshold=medium || true
+    - ./snyk monitor --all-projects --org=ahmed1616-bo
