@@ -29,7 +29,7 @@ steps:
      
       - curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
       - chmod +x snyk
-      - ./snyk auth $SNYK_TOKEN
+      - export SNYK_TOKEN=$SNYK_TOKEN
       
       - ./snyk test --severity-threshold=medium --org=ahmed1616-bo || true
       - ./snyk monitor --org=ahmed1616-bo
