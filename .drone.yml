@@ -40,4 +40,4 @@ steps:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
     commands:
-      - sonar-scanner -X -Dsonar.projectKey=absence -Dsonar.projectName=absence -Dsonar.projectVersion=1.0 -Dsonar.sources=src/main/java -Dsonar.host.url=http://192.168.3.100:30033 -Dsonar.login=sqa_1c7f1312c55343bc20292725c84c5ba6fe81663e -Dsonar.java.binaries=target/classes -Dsonar.java.source=17 -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="**/target/**,**/Dockerfile" -Dsonar.dependencyCheck.htmlReportPath=dependency-check-report.html -Dsonar.dependencyCheck.jsonReportPath=dependency-check-report.json
+      - sonar-scanner -X -Dsonar.projectKey=absence -Dsonar.projectName=absence -Dsonar.projectVersion=1.0 -Dsonar.sources=src/main/java -Dsonar.host.url=http://192.168.3.100:30033 -Dsonar.login=admin -Dsonar.password=A@med22754008 -Dsonar.java.binaries=target/classes -Dsonar.java.source=17 -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="**/target/**,**/Dockerfile" -Dsonar.dependencyCheck.htmlReportPath=dependency-check-report.html -Dsonar.dependencyCheck.jsonReportPath=dependency-check-report.json
