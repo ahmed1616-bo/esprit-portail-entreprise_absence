@@ -33,10 +33,11 @@ steps:
       
       - ./snyk test --severity-threshold=medium --org=ahmed1616-bo || true
       - ./snyk monitor --org=ahmed1616-bo
-  - name: sonar-scan
-    image: maven:3.8-openjdk-17
+  - name: sonar-analysis
+    image: sonarsource/sonar-scanner-cli:4.8
     environment:
+      SONAR_HOST_URL: "http://192.168.3.100:30033"
       SONAR_TOKEN:
-        from_secret: sonar-token
+        from_secret: SONAR_TOKEN
     commands:
       - sonar-scanner -X -Dsonar.projectKey=absence -Dsonar.projectName=absence -Dsonar.projectVersion=1.0 -Dsonar.sources=src/main/java -Dsonar.host.url=http://192.168.3.100:30033 -Dsonar.login=sqa_1c7f1312c55343bc20292725c84c5ba6fe81663e -Dsonar.java.binaries=target/classes -Dsonar.java.source=17 -Dsonar.sourceEncoding=UTF-8 -Dsonar.exclusions="**/target/**,**/Dockerfile" -Dsonar.dependencyCheck.htmlReportPath=dependency-check-report.html -Dsonar.dependencyCheck.jsonReportPath=dependency-check-report.json
