@@ -54,100 +54,100 @@ pipeline{
     }
 }
 
-    stage("build Artifact")
-     {
-        when{
-        branch 'develop'
-        }
-        steps{
-         sh "mvn clean package -DskipTests=true"
-         archive 'target/*.jar'
-        }
+ //   stage("build Artifact")
+   //  {
+     //   when{
+       // branch 'develop'
+       // }
+      //  steps{
+     //    sh "mvn clean package -DskipTests=true"
+     //    archive 'target/*.jar'
+     //   }
 
 
-    }
-    stage('Snyk Security Scan') {
+   // }
+    //stage('Snyk Security Scan') {
 
-    environment {
-        SNYK_TOKEN = credentials('snyk-auth-token')
-    }
-    when{
-        branch 'develop'
-        }
-    steps {
-        sh '''
+    //environment {
+      //  SNYK_TOKEN = credentials('snyk-auth-token')
+    //}
+    //when{
+      //  branch 'develop'
+       // }
+   // steps {
+     //   sh '''
             # Download and install Snyk CLI
-            curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
-            chmod +x snyk
+       //     curl -L https://static.snyk.io/cli/latest/snyk-linux -o snyk
+         //   chmod +x snyk
             
-            # Authenticate with Snyk
-            ./snyk auth $SNYK_TOKEN
+        //    # Authenticate with Snyk
+        //    ./snyk auth $SNYK_TOKEN
             
-            # Test for vulnerabilities
-            ./snyk test --all-projects --org=ahmed1616-bo --severity-threshold=medium || true
+        //    # Test for vulnerabilities
+         //   ./snyk test --all-projects --org=ahmed1616-bo --severity-threshold=medium || true
             
-            # Monitor project (sends results to Snyk dashboard)
-            ./snyk monitor --all-projects --org=ahmed1616-bo
-        '''
-    }
-}
+        //    # Monitor project (sends results to Snyk dashboard)
+       //     ./snyk monitor --all-projects --org=ahmed1616-bo
+       // '''
+   // }
+//}
 
 
 
 
-          stage("SonarQube Scan") {
-               when{ branch 'develop'}
-            steps {
-                withSonarQubeEnv('sonar') {  
-                    sh '''
+    //      stage("SonarQube Scan") {
+       //        when{ branch 'develop'}
+      //      steps {
+      //          withSonarQubeEnv('sonar') {  
+       //             sh '''
                     
-                     mvn clean compile test-compile sonar:sonar \
-                            -Dsonar.projectKey=esprit-portail-entreprise_absence \
-                            -Dsonar.projectName="esprit-portail-entreprise_absence - ${BRANCH_NAME}" \
-                            -Dsonar.login=${SONAR_TOKEN}
+        //             mvn clean compile test-compile sonar:sonar \
+        //                    -Dsonar.projectKey=esprit-portail-entreprise_absence \
+        //                    -Dsonar.projectName="esprit-portail-entreprise_absence - ${BRANCH_NAME}" \
+         //                   -Dsonar.login=${SONAR_TOKEN}
                     
-                  
-                    '''
-                }
-            }
-        }
-    stage('OWASP Dependency-Check Vulnerabilities') {
-  when {
-    branch 'develop'
-  }
+         //         
+           //         '''
+             //   }
+         //   }
+      //  }
+  //  stage('OWASP Dependency-Check Vulnerabilities') {
+  //when {
+  //  branch 'develop'
+  //}
   
-  steps {
-    withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
-      sh '''
-        ${DEPENDENCY_CHECK_HOME}/bin/dependency-check.sh \
-        --nvdApiKey $NVD_API_KEY \
-        --project esprit-portail-entreprise_absence \
-        --scan . \
-        --out ./ \
-        --format ALL \
-        --prettyPrint
-      '''
-    }
-    dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-  }
-}
+  //steps {
+    //withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_API_KEY')]) {
+     // sh '''
+    //    ${DEPENDENCY_CHECK_HOME}/bin/dependency-check.sh \
+    //    --nvdApiKey $NVD_API_KEY \
+    //    --project esprit-portail-entreprise_absence \
+    //    --scan . \
+    //    --out ./ \
+    //    --format ALL \
+    //    --prettyPrint
+    //  '''
+   // }
+   // dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+  //}
+//}
 
-stage('Security Scan - SpotBugs') {
-  when {
-    branch 'develop'
-  }
-    steps {
-        sh 'mvn spotbugs:spotbugs'
-    }
-    post {
-        always {
-            recordIssues(
-                enabledForFailure: true,
-                tools: [spotBugs(pattern: '**/target/spotbugsXml.xml')]
-            )
-        }
-    }
-}
+//stage('Security Scan - SpotBugs') {
+ // when {
+ //   branch 'develop'
+ // }
+  //  steps {
+      //  sh 'mvn spotbugs:spotbugs'
+   // }
+   // post {
+   //     always {
+       //     recordIssues(
+          //      enabledForFailure: true,
+          //      tools: [spotBugs(pattern: '**/target/spotbugsXml.xml')]
+          //  )
+       // }
+   // }
+//}
 
     stage('Docker Build') {
             when {
