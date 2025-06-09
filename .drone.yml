@@ -39,7 +39,4 @@ steps:
       SONAR_TOKEN:
         from_secret: sonar-token
     commands:
-      - mvn clean compile sonar:sonar 
-        -Dsonar.projectKey=your-project-key 
-        -Dsonar.host.url=http://192.168.3.100:30033
-        -Dsonar.login=$SONAR_TOKEN
+      - mvn clean compile sonar:sonar -Dsonar.projectKey=absence -Dsonar.host.url=http://192.168.3.100:30033/ -Dsonar.token=$SONAR_TOKEN
