@@ -1,6 +1,9 @@
 kind: pipeline
 type: kubernetes
 name: default
+volumes:
+  - name: reports
+    temp: {}
 steps:
 
   - name: extract git info
@@ -61,6 +64,7 @@ steps:
       - mkdir -p /reports/security
       - trivy fs --security-checks vuln,secret,config --severity LOW,MEDIUM,HIGH,CRITICAL . --format json --output /reports/security/trivy-fs-scan.json
       - trivy fs --security-checks vuln,secret,config --severity HIGH,CRITICAL . --format table --output /reports/security/trivy-fs-scan.txt
+      - cp /reports/scan-results/*.txt .
   - name: dependency-check
     image: owasp/dependency-check:12.1.0
     failure: ignore
@@ -74,7 +78,7 @@ steps:
       - mkdir -p /report
       - export NVD_API_KEY=$NVD_API_KEY
       - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /report --nvdApiKey $NVD_API_KEY 
-      - cp /report/dependency-check-report.* .
+      - cp /reports/dependency-check/dependency-check-report.* .
   - name: install-mc
     image: alpine:latest
     environment:
@@ -86,7 +90,10 @@ steps:
       - mv /tmp/mc /usr/local/bin/mc
       - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
       - mc mb myminio/scannerfiles || echo "Bucket already exists"
-      - mc cp  /reports/security/trivy-fs-scan.txt myminio/scannerfiles/security/trivy-fs-scan.txt
+      - mc cp /reports/scan-results/fs-scan-results.txt myminio/scannerfiles/scan-results/fs-scan-results-${DRONE_COMMIT_SHA}.txt
+      - mc cp /reports/scan-results/dockerfile-scan-results.txt myminio/scannerfiles/scan-results/dockerfile-scan-results-${DRONE_COMMIT_SHA}.txt
+      - mc cp /reports/dependency-check/dependency-check-report.html myminio/scannerfiles/dependency-check/dependency-check-report-${DRONE_COMMIT_SHA}.html
+      - mc cp /reports/dependency-check/dependency-check-report.json myminio/scannerfiles/dependency-check/dependency-check-report-${DRONE_COMMIT_SHA}.json
   - name: build-and-push
     image: plugins/docker
     environment:
@@ -102,6 +109,3 @@ steps:
       tags:
         - ${DRONE_COMMIT_SHA}
 
-volumes:
-  - name: reports
-    temp: {}
