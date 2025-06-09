@@ -86,7 +86,7 @@ steps:
       - mv /tmp/mc /usr/local/bin/mc
       - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
       - mc mb myminio/scannerfiles || echo "Bucket already exists"
-      - mc cp -r /reports/* myminio/scannerfiles/
+      - for file in /reports/*; do mc cp -r "$file" myminio/scannerfiles/; done
   - name: build-and-push
     image: plugins/docker
     environment:
