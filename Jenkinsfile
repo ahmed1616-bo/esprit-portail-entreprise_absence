@@ -180,23 +180,29 @@ stage('Security Scan - SpotBugs') {
     }
 }
 
-    stage('Build and Push with Kaniko') {
-      steps {
-        container('kaniko') {
-          script {
-            def tag = "${DOCKER_REGISTRY}/${REPO_NAME}:${GIT_COMMIT.take(7)}"
-            sh """
-              /kaniko/executor \
-                --dockerfile=Dockerfile \
-                --context=`pwd` \
-                --destination=${tag} \
-                --cache=true \
-                --cache-dir=/cache
-            """
-          }
+    stage('Docker Build') {
+            when {
+                 
+                    branch 'develop'
+                      
+            }
+            steps {
+                script {
+
+                     def imageTag = "${env.REPO_NAME}:${env.GIT_COMMIT.substring(0, 7)}"
+                  
+                    sh """
+                        docker build -t ${imageTag} .
+                        echo "Successfully built image: ${imageTag}"
+                    """
+                    
+                    
+                    
+                    
+                    
+                }
+            }
         }
-      }
-    }
 
     stage("Checkout code QA")
      {
