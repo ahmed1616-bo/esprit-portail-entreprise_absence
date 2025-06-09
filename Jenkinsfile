@@ -1,36 +1,5 @@
 pipeline{
-   agent {
-    kubernetes {
-      label 'kaniko-agent'
-      defaultContainer 'kaniko'
-      yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    some-label: kaniko
-spec:
-  containers:
-  - name: kaniko
-    image: gcr.io/kaniko-project/executor:latest
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker
-    - name: kaniko-cache
-      mountPath: /cache
-  volumes:
-  - name: docker-config
-    secret:
-      secretName: harbor-secret
-  - name: kaniko-cache
-    persistentVolumeClaim:
-      claimName: kaniko-cache
-"""
-    }
-  }
+   agent any
    environment {
        
         SONAR_TOKEN = credentials('sonar')
