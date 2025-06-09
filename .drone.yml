@@ -16,12 +16,20 @@ steps:
     - exit 0 
   - name: maven-build
     image: maven:3.8-openjdk-17
+    volumes:
+      - name: reports
+        path: /reports
     commands:
       - mvn clean package -DskipTests
       - echo "Maven build completed"
+      - mkdir -p /reports/maven
+      - cp -r target /reports/maven/
       - exit 0 
   - name: snyk scan
     image: maven:3.8-openjdk-17
+    volumes:
+      - name: reports
+        path: /reports
     environment:
      SNYK_TOKEN:
       from_secret: snyk-auth-token
@@ -31,6 +39,8 @@ steps:
     - export SNYK_TOKEN=$SNYK_TOKEN
     - ./snyk test --all-projects --severity-threshold=medium --org=ahmed1616-bo || true
     - ./snyk monitor --all-projects --org=ahmed1616-bo || true
+    - mkdir -p /reports/snyk
+    - cp -r *.json *.xml /reports/snyk/ || true
   - name: sonar-analysis
     image: sonarsource/sonar-scanner-cli:4.8
     environment:
@@ -42,6 +52,7 @@ steps:
   
   - name: trivy-filesystem-scan
     image: aquasec/trivy:latest
+
     volumes:
       - name: reports
         path: /reports
@@ -53,6 +64,9 @@ steps:
   - name: dependency-check
     image: owasp/dependency-check:12.1.0
     failure: ignore
+    volumes:
+      - name: reports
+        path: /reports
     environment:
      NVD_API_KEY:
       from_secret: NVD_API_KEY
@@ -72,6 +86,7 @@ steps:
       - mv /tmp/mc /usr/local/bin/mc
       - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
       - mc mb myminio/scannerfiles || echo "Bucket already exists"
+      - mc cp -R /reports/* myminio/scannerfiles/
   - name: build-and-push
     image: plugins/docker
     environment:
@@ -86,4 +101,7 @@ steps:
       registry: harbor.pixelslabs.com
       tags:
         - ${DRONE_COMMIT_SHA}
-        - latest
+
+volumes:
+  - name: reports
+    temp: {}
