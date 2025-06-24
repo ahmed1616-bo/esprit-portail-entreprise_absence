@@ -82,22 +82,17 @@ steps:
   - name: update-manifest
     image: alpine/git
     environment:
-      GIT_USERNAME:
-        from_secret: git_username
-      GIT_PASSWORD:
-        from_secret: TOKEN
+      GIT_SSH:
+        from_secret: ssh
     commands:
-      - export TAG=${DRONE_COMMIT_SHA:0:5}
-      - git config --global user.email "ahmedromdhani0806@gmail.com"
-      - git config --global user.name "$GIT_USERNAME"
-      - echo "== DEBUG SECRETS =="
-      - echo "Username = $GIT_USERNAME"
-      - echo "Token length = ${#GIT_PASSWORD}"
-      - echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com" > ~/.git-credentials
-      - git config --global credential.helper store
-      - git clone https://github.com/ahmed1616-bo/k8s-manifest.git
+      - mkdir -p ~/.ssh && echo "$GIT_OPS_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+      - ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - git clone git@github.com:ahmed1616-bo/esprit-portail-entreprise_absence.git
       - cd k8s-manifest
       - sed -i "s|harbor.pixelslabs.com/projetesprit/absence:.*|harbor.pixelslabs.com/projetesprit/absence:${TAG}|g" absence.yaml
-      - git add absence.yaml
-      - git commit -m "Update absence image tag to $TAG"
-      - git push origin develop
+      - git config --global user.name "drone-ci"
+      - git config --global user.email "drone-ci@esprit.tn"
+      - git add .
+      - git commit -m "update portail-absence tag ${DRONE_TAG}"
+      - git push -f origin develop
+
