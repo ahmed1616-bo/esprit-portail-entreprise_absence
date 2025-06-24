@@ -85,7 +85,7 @@ steps:
       GIT_USERNAME:
         from_secret: git_username
       GIT_PASSWORD:
-        from_secret: git_token
+        from_secret: TOKEN
     commands:
       - export TAG=${DRONE_COMMIT_SHA:0:5}
       - git config --global user.email "ahmedromdhani0806@gmail.com"
