@@ -111,3 +111,20 @@ steps:
       tags:
         - ${DRONE_COMMIT_SHA}
 
+  - name: update-manifest
+    image: alpine/git
+    environment:
+      GIT_USERNAME:
+        from_secret: git_username
+      GIT_PASSWORD:
+        from_secret: git_token
+    commands:
+      - export TAG=${DRONE_COMMIT_SHA:0:5}
+      - git config --global user.email "ahmedromdhani0806@gmail.com"
+      - git config --global user.name "$GIT_USERNAME"
+      - git clone https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/ahmed1616-bo/k8s-manifest.git
+      - cd k8s-manifest
+      - sed -i "s|harbor.pixelslabs.com/projetesprit/absence:.*|harbor.pixelslabs.com/projetesprit/absence:${COMMIT_SHA_SHORT}|g" absence.yaml
+      - git add absence.yaml
+      - git commit -m "Update absence image tag to $TAG"
+      - git push origin develop
