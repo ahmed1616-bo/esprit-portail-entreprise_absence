@@ -85,14 +85,14 @@ steps:
       GIT_SSH:
         from_secret: ssh
     commands:
-      - mkdir -p ~/.ssh && echo "$GIT_OPS_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+      - mkdir -p ~/.ssh && echo "$GIT_SSH" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
       - ssh-keyscan github.com >> ~/.ssh/known_hosts
       - git clone git@github.com:ahmed1616-bo/esprit-portail-entreprise_absence.git
       - cd k8s-manifest
-      - sed -i "s|harbor.pixelslabs.com/projetesprit/absence:.*|harbor.pixelslabs.com/projetesprit/absence:${TAG}|g" absence.yaml
+      - sed -i "s|harbor.pixelslabs.com/projetesprit/absence:.*|harbor.pixelslabs.com/projetesprit/absence:${DRONE_COMMIT_SHA}|g" absence.yaml
       - git config --global user.name "drone-ci"
-      - git config --global user.email "drone-ci@esprit.tn"
+      - git config --global user.email "ahmedromdhani0806@gmail.com"
       - git add .
-      - git commit -m "update portail-absence tag ${DRONE_TAG}"
-      - git push -f origin develop
+      - git commit -m "update portail-absence tag ${DRONE_COMMIT_SHA}"
+      - git push -f origin master
 
