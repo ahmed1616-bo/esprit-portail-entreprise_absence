@@ -79,27 +79,6 @@ steps:
       registry: harbor.pixelslabs.com
       tags:
         - ${DRONE_COMMIT_SHA}
-  - name: update-manifest
-    image: alpine/git
-    environment:
-      GIT_SSH_KEY:
-        from_secret: git_ssh_key
-    commands:
-      - apk add --no-cache openssh-client
-      - mkdir -p ~/.ssh
-      - echo "$GIT_SSH_KEY" > ~/.ssh/id_ed25519
-      - chmod 600 ~/.ssh/id_ed25519
-      - ssh-keyscan github.com >> ~/.ssh/known_hosts
-      - eval $(ssh-agent -s)
-      - ssh-add ~/.ssh/id_ed25519
-      - git clone git@github.com:ahmed1616-bo/k8s-manifests.git
-      - cd k8s-manifests
-      - sed -i "s|harbor.pixelslabs.com/projetesprit/absence:.*|harbor.pixelslabs.com/projetesprit/absence:${DRONE_COMMIT_SHA}|g" absence.yaml
-      - git config --global user.name "drone-ci"
-      - git config --global user.email "ahmedromdhani0806@gmail.com"
-      - git add .
-      - git commit -m "update portail-absence tag ${DRONE_COMMIT_SHA}"
-      - git push origin master
 
   - name: git-ops (patch & push)
     image: alpine/git
