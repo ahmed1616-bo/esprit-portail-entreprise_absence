@@ -31,10 +31,11 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 FROM eclipse-temurin:17-jre-alpine as runtime
 
 # Create user
-#RUN addgroup -g 2003 esprit ; adduser  --ingroup esprit --disabled-password --uid 2003 esprit
+RUN addgroup -g 2003 esprit ; adduser  --ingroup esprit --disabled-password --uid 2003 esprit && \
+chmod -R 777 /tmp
 
 # Use user
-#USER esprit
+USER esprit
 
 # Path to unpacked jar from builder image
 ARG DEPENDENCY=/opt/app/target/dependency
