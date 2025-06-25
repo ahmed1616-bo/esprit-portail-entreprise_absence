@@ -38,7 +38,7 @@ steps:
       password:
         from_secret: harbor_password
       dockerfile: Dockerfile
-      repo: harbor.pixelslabs.com/projetesprit/absence
+      repo: harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence
       registry: harbor.pixelslabs.com
       tags:
         - ${DRONE_COMMIT_SHA}
@@ -53,7 +53,7 @@ steps:
       - ssh-keyscan github.com >> ~/.ssh/known_hosts
       - git clone git@github.com:ahmed1616-bo/k8s-manifest.git
       - cd k8s-manifest
-      - sed -E -i "s|harbor.pixelslabs.com/projetesprit/absence:[^ ]+|harbor.pixelslabs.com/projetesprit/absence:${DRONE_COMMIT_SHA}|g" absence.yaml
+      - sed -E -i "s|harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence:[^ ]+|harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence:${DRONE_COMMIT_SHA}|g" absence.yaml
       - git config --global user.name "drone-ci"
       - git config --global user.email "ahmedromdhani0806@gmail.com"
       - git add .
