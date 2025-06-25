@@ -64,7 +64,37 @@ steps:
       - mkdir -p /reports/security
       - trivy fs --security-checks vuln,secret,config --severity LOW,MEDIUM,HIGH,CRITICAL . --format json --output /reports/security/trivy-fs-scan.json
       - trivy fs --security-checks vuln,secret,config --severity HIGH,CRITICAL . --format table --output /reports/security/trivy-fs-scan.txt
-     
+  - name: dependency-check
+    image: owasp/dependency-check:12.1.0
+    failure: ignore
+    volumes:
+      - name: reports
+        path: /reports
+    environment:
+     NVD_API_KEY:
+      from_secret: NVD_API_KEY
+    commands:
+      - mkdir -p /reports
+      - export NVD_API_KEY=$NVD_API_KEY
+      - /usr/share/dependency-check/bin/dependency-check.sh --scan . --format "ALL" --out /reports --nvdApiKey $NVD_API_KEY
+      - cp /reports/dependency-check-report.* .
+  - name: install-mc
+    image: alpine:latest
+    volumes:
+      - name: reports
+        path: /reports
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+    commands:
+      - wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /tmp/mc
+      - chmod +x /tmp/mc
+      - mv /tmp/mc /usr/local/bin/mc
+      - mc alias set myminio http://192.168.3.100:30922 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+      - mc mb myminio/scannerfiles || echo "Bucket already exists"
+      - mc cp /reports/dependency-check-report.html myminio/scannerfiles/dependency-check-report.html
+      - mc cp /reports/dependency-check-report.csv myminio/scannerfiles/dependency-check-report.csv
+   
   - name: build-and-push
     image: plugins/docker
     environment:
