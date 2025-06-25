@@ -1,10 +1,6 @@
 # Base image builder
 FROM eclipse-temurin:17-jdk-alpine as builder
 
-# Authors
-LABEL Author="Mohamad Khalil BELDI <mohamadkhalil.beldi@esprit.tn>"
-LABEL Maintainer="Houssem Tebai <houssem.tebai@esprit.tn>"
-
 # Workdir
 WORKDIR /opt/app
 
@@ -34,15 +30,11 @@ RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 # Base image
 FROM eclipse-temurin:17-jre-alpine as runtime
 
-# Authors
-LABEL Author="Mohamad Khalil BELDI <mohamadkhalil.beldi@esprit.tn>"
-LABEL Maintainer="Houssem Tebai <houssem.tebai@esprit.tn>"
-
 # Create user
-RUN addgroup -g 2003 esprit ; adduser  --ingroup esprit --disabled-password --uid 2003 esprit
+#RUN addgroup -g 2003 esprit ; adduser  --ingroup esprit --disabled-password --uid 2003 esprit
 
 # Use user
-USER esprit
+#USER esprit
 
 # Path to unpacked jar from builder image
 ARG DEPENDENCY=/opt/app/target/dependency
