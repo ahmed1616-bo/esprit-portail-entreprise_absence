@@ -124,5 +124,5 @@ steps:
       - git config --global user.name "drone-ci"
       - git config --global user.email "ahmedromdhani0806@gmail.com"
       - git add .
-      - git commit -m "update portail-absence tag ${DRONE_COMMIT_SHA}"
+      - git commit -m "update portail-absence tag ${DRONE_COMMIT_SHA} test it"
       - git push -f origin master
