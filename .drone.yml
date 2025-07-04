@@ -1,0 +1,62 @@
+kind: pipeline
+type: kubernetes
+name: default
+volumes:
+  - name: reports
+    temp: {}
+steps:
+
+  - name: extract git info
+    image: alpine
+    commands:
+    - apk add git
+    - export GIT_COMMIT=$(git rev-parse HEAD)
+    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+    - export REPO_NAME=$(basename -s .git `git config --get remote.origin.url`)
+    - echo "$GIT_COMMIT"
+    - echo "Branch=$BRANCH_NAME"
+    - echo "Repository=$REPO_NAME"
+    - exit 0 
+  - name: maven-build
+    image: maven:3.8-openjdk-17
+    volumes:
+      - name: reports
+        path: /reports
+    commands:
+      - mvn clean package -DskipTests
+      - echo "Maven build completed"
+      - mkdir -p /reports/maven
+      - cp -r target /reports/maven/
+      - exit 0 
+  - name: build-and-push
+    image: plugins/docker
+    environment:
+      DOCKER_BUILDKIT: 1
+    settings:
+      username:
+        from_secret: harbor_username
+      password:
+        from_secret: harbor_password
+      dockerfile: Dockerfile
+      repo: harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence
+      registry: harbor.pixelslabs.com
+      tags:
+        - ${DRONE_COMMIT_SHA}
+
+  - name: git-ops (patch & push)
+    image: alpine/git
+    environment:
+      GIT_OPS_SSH_KEY:
+        from_secret: ssh
+    commands:
+      - mkdir -p ~/.ssh && echo "$GIT_OPS_SSH_KEY" > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+      - ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - git clone git@github.com:ahmed1616-bo/k8s-manifest.git
+      - cd k8s-manifest
+      - sed -E -i "s|harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence:[^ ]+|harbor.pixelslabs.com/projetesprit/esprit-portail-entreprise_absence:${DRONE_COMMIT_SHA}|g" absence.yaml
+      - git config --global user.name "drone-ci"
+      - git config --global user.email "ahmedromdhani0806@gmail.com"
+      - git add .
+      - git commit -m "update portail-absence tag ${DRONE_COMMIT_SHA} test it"
+      - git push -f origin master
+
